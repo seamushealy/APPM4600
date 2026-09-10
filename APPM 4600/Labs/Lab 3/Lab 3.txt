@@ -1,0 +1,143 @@
+# Prelab
+import numpy as np
+
+def fixedpt(f, x0, tol, Nmax):
+    import numpy as np
+    '''x0 = initial guess'''
+    '''Nmax = max number of iterations'''
+    '''tol = stopping tolerance'''
+
+    count = 0
+    phat = np.array([])
+    while count < Nmax:
+        count = count + 1
+        x1 = f(x0)
+        phat = np.append(phat, x1)
+        if abs(x1 - x0) < tol:
+            xstar = x1
+            ier = 0
+            return [xstar, ier, count, phat]
+
+        x0 = x1
+        
+    xstar = x1
+    ier = 1
+    count = 0
+    return [xstar, ier, count, phat]
+    
+x0 = 1
+tol = 1e-8
+Nmax = 100
+
+def f(x):
+    return x**2 - 1
+
+[xstar, ier, count, phat] = fixedpt(f, x0, tol, Nmax)
+
+#print(xstar)
+#print(ier)
+#print(count)
+#print(phat)
+
+# 2.2 # 2
+
+# a
+def g(x):
+    return (10/(x+4))**0.5
+
+p = 1.3652300134140976
+p0 = 1.5
+tol = 10e-10
+Nmax = 100
+
+[xstar, ier, count, phat] = fixedpt(g, p0, tol, Nmax)
+#print(xstar)
+#print(ier)
+#print(count)
+#print(phat)
+
+# b
+
+err1 = np.abs(phat[3] - p)
+err2 = np.abs(phat[2] - p)
+err3 = np.abs(phat[1] - p)
+
+alpha = np.log(err1/err2) / np.log(err2/err3)
+#print(alpha)
+
+def conv_order(phat, p):
+    err1 = np.abs(phat[2] - p)
+    err2 = np.abs(phat[1] - p)
+    err3 = np.abs(phat[0] - p)
+
+    alpha = np.log(np.abs(err1/err2)) / np.log(np.abs(err2/err3))
+    return alpha
+
+
+#3.2 exercises
+
+N = len(phat)
+
+phat_new = np.array([])
+
+def aitkens(phat):
+    phat_new = np.array([])
+    for i in range(N-2):
+        phat_n = phat[i] - ((phat[i+1] - phat[i])**2 / (phat[i+2] - (2*phat[i+1]) + phat[i]))
+        phat_new = np.append(phat, phat_n)
+    return phat_new
+    
+phat_new = aitkens(phat)
+print(phat_new)
+
+# The convergence is faster because the numbers in the array stop changing after the 9th term
+
+order = conv_order(phat_new, p)
+print(order)
+
+# The convergence order is 1
+
+# 3.4
+
+# 1
+# Inputs: g(x), initial guess, stopping tolerance, max number of iterations
+# Outputs: vector of approximations, ier, approximation, number of iterations
+
+#2 
+
+def steffensons(g, p0, tol, Nmax):
+
+    count = 0
+    phat = np.array([])
+    while count < Nmax:
+        count = count + 1
+
+        b = g(p0)
+        c = g(b)
+        p1 = p0 - (((b - p0)**2) / (c - 2*b + p0))
+        phat = np.append(phat, p1)
+        if abs(p1 - p0) < tol:
+            pstar = p0
+            ier = 0
+            return [pstar, ier, count, phat]
+
+        p0 = p1
+
+    pstar = p1
+    ier = 1
+    count = 0
+    return [pstar, ier, count, phat]
+
+tol = 10e-10
+p0 = 1.5
+p = 1.3652300134140976
+
+[pstar, ier, count, phat] = steffensons(g, p0, tol, 100)
+
+print(pstar)
+print(phat)
+
+conv_order(phat, p)
+
+# Pstar = 1.3652300134165856
+# Based on the sequence of approximations the order of convergence is 0.5, this is smaller than the other two methods
